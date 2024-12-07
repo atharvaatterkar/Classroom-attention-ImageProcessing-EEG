@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Settings Page for SmartStock AI">
+    <meta name="author" content="Your Name">
+    <title>Settings</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/style.css')}}">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script type="text/javascript" src="{{ url_for('static', filename='script/script.js')}}" defer></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="#" class="bx logo">
+            <!-- <img src="assets/dashboard.jpg" alt="Logo"> -->
+            <div class="logo-name">
+                <span>MindMapr </span>AI
+            </div>
+        </a>
+        <ul class="side-menu">
+            <li>
+                <form action="{{ url_for('index') }}" method="POST" style="display: inline;">
+                    <button type="submit" style="all: unset; cursor: pointer;">
+                        <i class='bx bxs-dashboard'></i>InsightHub
+                    </button>
+                </form>
+            </li>
+            <li>
+                <form action="/live" method="POST" style="display: inline;">
+                    <button type="submit" style="all: unset; cursor: pointer;">
+                        <i class='bx bx-video'></i>Live Monitoring
+                    </button>
+                </form>
+            </li>
+            <li>
+                <form action="{{ url_for('Analytics') }}" method="POST" style="display: inline;">
+                    <button type="submit" style="all: unset; cursor: pointer;">
+                        <i class='bx bx-bar-chart'></i>Analytics
+                    </button>
+                </form>
+            </li>
+            <li>
+                <form action="{{ url_for('Messages') }}" method="POST" style="display: inline;">
+                    <button type="submit" style="all: unset; cursor: pointer;">
+                        <i class='bx bx-message-square-dots'></i>Messages
+                    </button>
+                </form>
+            </li>
+            <!-- <li><a href="#"><i class='bx bx-group'></i>Users</a></li> -->
+            <li class="active"><a href="{{ url_for('Settings') }}"><i class='bx bx-bar-chart'></i>Settings</a></li>
+        </ul>
+        <ul class="side-menu">
+            <li>
+                <a href="#" class="logout">
+                    <i class='bx bx-log-out'></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search here" aria-label="Search">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></label>
+            <a href="#" class="notify">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="../static/assets/user-profile-icon.png" alt="Profile Icon">
+            </a>
+        </nav>
+
+        <!-- Body Content -->
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Settings</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">Settings</a></li>
+                        <li> / </li>
+                        <li><a href="#" class="active">General</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Settings Form -->
+            <div class="settings-form">
+                <h2>General Settings</h2>
+                <form>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" value="JohnDoe">
+
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="johndoe@example.com">
+
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="New Password">
+
+                    <button type="submit" class="btn">Save Changes</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

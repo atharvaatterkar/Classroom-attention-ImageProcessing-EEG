@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Live EEG Monitoring</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script type="text/javascript" src="{{ url_for('static', filename='script/script.js') }}" defer></script>
+</head>
+
+<body>
+
+    <!-- Side Navigation Bar -->
+    <div class="sidebar">
+        <a href="#" class="bx logo">
+            <div class="logo-name">
+                <span>MindMapr </span>AI
+            </div>
+        </a>
+        <ul class="side-menu">
+            <li>
+                <form action="{{ url_for('index') }}" method="POST" style="display: inline;">
+                    <button type="submit" style="all: unset; cursor: pointer;">
+                        <i class='bx bxs-dashboard'></i>InsightHub
+                    </button>
+                </form>
+            </li>
+            <li class="active"><a href="{{ url_for('live') }}"><i class='bx bx-video'></i>Live Monitoring</a></li>
+            <li>
+                <form action="{{ url_for('Analytics') }}" method="POST" style="display: inline;">
+                    <button type="submit" style="all: unset; cursor: pointer;">
+                        <i class='bx bx-bar-chart'></i>Analytics
+                    </button>
+                </form>
+            </li>
+            <li>
+                <form action="{{ url_for('Messages') }}" method="POST" style="display: inline;">
+                    <button type="submit" style="all: unset; cursor: pointer;">
+                        <i class='bx bx-message-square-dots'></i>Messages
+                    </button>
+                </form>
+            </li>
+            <!-- <li><a href="#"><i class='bx bx-group'></i>Users</a></li> -->
+            <li>
+                <form action="{{ url_for('Settings') }}" method="POST" style="display: inline;">
+                    <button type="submit" style="all: unset; cursor: pointer;">
+                        <i class='bx bx-cog'></i>Settings
+                    </button>
+                </form>
+            </li>
+        </ul>
+        <ul class="side-menu">
+            <li>
+                <a href="#" class="logout">
+                    <i class='bx bx-log-out'></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search here">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notify">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="../static/assets/user-profile-icon.png" alt="profile-icon">
+            </a>
+        </nav>
+
+        <!-- Header -->
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1 id="dash" class="live_data_style"> Real-Time EEG Signals</h1>
+                </div>
+            </div>
+
+            <!-- EEG Data Section -->
+            <div id="eeg-data">
+                <h2 class="center_content">Live Data</h2>
+                <p class="center_content"><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+                <p class="center_content"><strong>Raw Value:</strong> <span id="raw_value"></span></p>
+                <p class="center_content"><strong>Attention:</strong> <span id="attention"></span></p>
+                <p class="center_content"><strong>Attention Level:</strong> <span id="attention-level"></span></p>
+                <p class="center_content"><strong>Meditation:</strong> <span id="meditation"></span></p>
+                <p class="center_content"><strong>Waves:</strong> <span id="waves"></span></p>
+            </div>
+
+            <!-- Chart Section -->
+            <div id="chart-container">
+                <h2>Attention Graph</h2>
+                <canvas id="attentionChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Session Summary Section -->
+            <div id="session-summary" style="display: none;">
+                <h2>Session Summary</h2>
+                <p><strong>Low Attention Time:</strong> <span id="low-attention"></span> seconds</p>
+                <p><strong>Medium Attention Time:</strong> <span id="medium-attention"></span> seconds</p>
+                <p><strong>High Attention Time:</strong> <span id="high-attention"></span> seconds</p>
+                <p><strong>Total Time:</strong> <span id="total-time"></span> seconds</p>
+            </div>
+
+            <!-- Download Link Section -->
+            <div id="download-section">
+                <h2>Download Report</h2>
+                <a href="{{ url_for('download_report') }}" download="class_attention_times.csv">
+                    <i class='bx bx-cloud-download'></i> Download Class Attention Report
+                </a>
+            </div>
+    </div>
+    </main>
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+
+
+        //  socket.on('eeg_data', function(data) {
+        //      document.getElementById('timestamp').innerText = data.timestamp;
+        //      document.getElementById('raw_value').innerText = data.raw_value;
+        //      document.getElementById('attention').innerText = data.attention;
+        //      document.getElementById('attention-level').textContent = data.attention_level;
+        //      document.getElementById('meditation').innerText = data.meditation;
+        //      document.getElementById('waves').innerText = JSON.stringify(data.waves);
+
+
+        //      addDataToChart(data.timestamp, data.attention);
+        //  });
+
+        // Handle real-time EEG data
+        socket.on('eeg_data', function (data) {
+            // Extract the time part from the timestamp
+            const fullTimestamp = new Date(data.timestamp);
+            const time = fullTimestamp.toLocaleTimeString('en-US', { hour12: false }); // Format as HH:mm:ss
+
+            // Update the UI with the time
+            document.getElementById('timestamp').innerText = time;
+            document.getElementById('raw_value').innerText = data.raw_value;
+            document.getElementById('attention').innerText = data.attention;
+            document.getElementById('attention-level').textContent = data.attention_level;
+            document.getElementById('meditation').innerText = data.meditation;
+            document.getElementById('waves').innerText = JSON.stringify(data.waves);
+
+            // Update the chart
+            addDataToChart(time, data.attention);
+        });
+
+
+        // Handle session summary
+        socket.on('session_summary', function (summary) {
+            document.getElementById('low-attention').innerText = summary.low_attention_time;
+            document.getElementById('medium-attention').innerText = summary.medium_attention_time;
+            document.getElementById('high-attention').innerText = summary.high_attention_time;
+            document.getElementById('total-time').innerText = summary.total_time;
+
+            // Show session summary
+            document.getElementById('session-summary').style.display = 'block';
+        });
+
+        // Chart.js setup
+        const ctx = document.getElementById('attentionChart').getContext('2d');
+        const attentionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Attention',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 1,
+                    tension: 0.3,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Timestamp'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Attention Value'
+                        },
+                        min: 0,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+
+        // function addDataToChart(timestamp, attentionValue) {
+        //     const maxDataPoints = 50;
+
+        //     attentionChart.data.labels.push(timestamp);
+        //     attentionChart.data.datasets[0].data.push(attentionValue);
+
+        //     if (attentionChart.data.labels.length > maxDataPoints) {
+        //         attentionChart.data.labels.shift();
+        //         attentionChart.data.datasets[0].data.shift();
+        //     }
+
+        //     attentionChart.update();
+        // }
+
+        function addDataToChart(timestamp, attentionValue) {
+            const maxDataPoints = 50; // Maximum points to display on the chart
+
+            // Add the new data point
+            attentionChart.data.labels.push(timestamp);
+            attentionChart.data.datasets[0].data.push(attentionValue);
+
+            // Remove the oldest data point if exceeding the limit
+            if (attentionChart.data.labels.length > maxDataPoints) {
+                attentionChart.data.labels.shift();
+                attentionChart.data.datasets[0].data.shift();
+            }
+
+            // Ensure there's always at least one data point to avoid disappearing lines
+            if (attentionChart.data.datasets[0].data.length === 0) {
+                attentionChart.data.labels.push(timestamp);
+                attentionChart.data.datasets[0].data.push(attentionValue);
+            }
+
+            // Update the chart
+            attentionChart.update();
+        }
+
+    </script>
+</body>
+
+</html>
